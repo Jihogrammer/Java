@@ -1,5 +1,5 @@
 package dev.jihogrammer.java.util.aspect;
 
-public interface Before {
-    Context before(String... values);
+public interface Before<T> {
+    T before();
 }

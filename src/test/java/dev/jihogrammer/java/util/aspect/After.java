@@ -1,5 +1,5 @@
 package dev.jihogrammer.java.util.aspect;
 
-public interface After {
-    void after(Context context);
+public interface After<T> {
+    void after(T t);
 }
