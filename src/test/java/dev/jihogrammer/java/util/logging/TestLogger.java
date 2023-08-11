@@ -1,28 +1,46 @@
 package dev.jihogrammer.java.util.logging;
 
+import dev.jihogrammer.java.util.reflection.ClassFinder;
+import dev.jihogrammer.java.util.reflection.FieldFinder;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.springframework.boot.logging.LogLevel;
 
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 
+// TODO 로깅에서 제외할 패키지 받을 수 있게 설정
+
+// TODO `ConsoleLogger` 추상 클래스 혹은 인터페이스 작성
 public final class TestLogger implements Logger {
+    // TODO `LogFormatter`로 이동
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    private static final Map<LogLevel, String> COLOR_MAP = new EnumMap<>(LogLevel.class);
+    // TODO `ConsoleLogger` 추상 클래스 혹은 인터페이스로 이동
+    private static final Map<LogLevel, String> COLOR_MAP = new EnumMap<>(Map.of(
+            LogLevel.TRACE, "\u001B[0;90m",
+            LogLevel.DEBUG, "\u001B[32m",
+            LogLevel.INFO, "\u001B[0m",
+            LogLevel.WARN, "\u001B[33m",
+            LogLevel.ERROR, "\u001B[31m",
+            LogLevel.FATAL, "\u001B[1;91m",
+            LogLevel.OFF, "\u001B[0m"
+    ));
+    // TODO `ConsoleLogger` 추상 클래스 혹은 인터페이스로 이동
     private final static Set<LogLevel> ENABLED_LEVELS = EnumSet.noneOf(LogLevel.class);
+    // TODO `LogFormatter`로 이동
+    private final static int MAX_NAME_LENGTH;
     private final String name;
 
     static {
-        COLOR_MAP.put(LogLevel.TRACE, "\u001B[0;90m");
-        COLOR_MAP.put(LogLevel.DEBUG, "\u001B[32m");
-        COLOR_MAP.put(LogLevel.INFO, "\u001B[0m");
-        COLOR_MAP.put(LogLevel.WARN, "\u001B[33m");
-        COLOR_MAP.put(LogLevel.ERROR, "\u001B[31m");
-        COLOR_MAP.put(LogLevel.FATAL, "\u001B[1;91m");
-        COLOR_MAP.put(LogLevel.OFF, "\u001B[0m");
+        MAX_NAME_LENGTH = new ClassFinder().findAllClasses().stream()
+                .filter(clazz -> new FieldFinder().hasFieldInClass(clazz, "log"))
+                .filter(clazz -> !Modifier.isFinal(clazz.getModifiers()))
+                .mapToInt(clazz -> clazz.getSimpleName().length())
+                .max()
+                .orElse(20);
 
         Consumer<LogLevel> logLevelAdder = (logLevel) -> {
             for (LogLevel level : LogLevel.values()) {
@@ -32,37 +50,32 @@ public final class TestLogger implements Logger {
             }
         };
 
-        Consumer<String> prettyPrinter = (message) -> {
-            char[] line = new char[message.length()];
-            Arrays.fill(line, '=');
-            System.err.println();
-            System.err.println(line);
-            System.err.println(message);
-            System.err.println(line);
-            System.err.println();
-        };
-
         try {
+            System.out.print(COLOR_MAP.get(LogLevel.FATAL));
             LogLevel logLevel = Enum.valueOf(LogLevel.class, System.getenv("logging.level").toUpperCase());
             logLevelAdder.accept(logLevel);
-            prettyPrinter.accept("environment logging.level: " + logLevel);
-        } catch (Throwable failedToLoadFromEnv) {
+            System.out.println("> logging.level is '" + logLevel + "' by system environment");
+        } catch (Throwable failedToLoadFromSystemEnvironment) {
             try {
                 LogLevel logLevel = Enum.valueOf(LogLevel.class, System.getProperty("logging.level").toUpperCase());
                 logLevelAdder.accept(logLevel);
-                prettyPrinter.accept("property logging.level: " + logLevel);
-            } catch (Throwable failedToLoadFromProp) {
+                System.out.println("> logging.level is '" + logLevel + "' by system property");
+            } catch (Throwable failedToLoadFromSystemProperties) {
                 logLevelAdder.accept(LogLevel.INFO);
-                prettyPrinter.accept("default logging.level: " + LogLevel.INFO);
+                System.out.println("> logging.level is '" + LogLevel.INFO + "' (default)");
             }
+        } finally {
+            System.out.print(COLOR_MAP.get(LogLevel.OFF));
         }
     }
 
     public TestLogger(Class<?> clazz) {
-        this(clazz.getSimpleName());
-    }
-    public TestLogger(String name) {
-        this.name = name;
+        this.name = clazz.getSimpleName();
+
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass == null || !superclass.equals(Object.class)) {
+            print(LogLevel.WARN, "Assign it as an interface or super class if you can.");
+        }
     }
 
     @Override
@@ -72,41 +85,39 @@ public final class TestLogger implements Logger {
 
     private void print(final LogLevel level, final String message, final Object... args) {
         if (ENABLED_LEVELS.contains(level)) {
-            System.out.print(COLOR_MAP.get(level));
-            System.out.println(format(level, message, args));
-            System.out.print(COLOR_MAP.get(LogLevel.OFF));
+            System.out.println(COLOR_MAP.get(level) + format(level, message, args));
         }
     }
 
-    // TODO `TestLogger`를 참조하는 객체 리스트를 만들고, Math.max(20, objectNames.max()) 처리 가능한지 확인 (static reflection)
+    // TODO `LogFormatter`로 이동
     private String format(final LogLevel level, final String message, final Object[] args) {
-        return timestamp() + ' ' +
+        return formatTimestamp() + ' ' +
                 '[' + formatWithLength(Thread.currentThread().getName(), 19) + ']' + ' ' +
-                '[' + formatWithLength(name, 15) + ']' + ' ' +
-                formatWithLength(level.name(), 5) + " - " + makeMessage(message, args);
+                '[' + formatWithLength(level.name(), 5) + ']' + ' ' +
+                '[' + formatWithLength(name, MAX_NAME_LENGTH) + ']' + ' ' +
+                formatMessageBody(message, args);
     }
 
-    private String makeMessage(String message, Object[] args) {
+    // TODO `LogFormatter`로 이동
+    private String formatMessageBody(String message, Object[] args) {
         if (message.contains("{}")) {
             StringBuilder sb = new StringBuilder();
             String[] tokens = message.split("\\{}");
-            int index = 0;
-            for (; index < Math.min(tokens.length, args.length); index++) {
+            for (int index = 0; index < Math.min(tokens.length, args.length); index++) {
                 sb.append(tokens[index]).append(args[index].toString());
-            }
-            while (index < tokens.length) {
-                sb.append(tokens[index++]);
             }
             return sb.toString();
         }
         return message;
     }
 
+    // TODO `LogFormatter`로 이동
     private String formatWithLength(final String str, final int length) {
         return String.format("%" + length + "s", str.substring(Math.max(0, str.length() - length)));
     }
 
-    private String timestamp() {
+    // TODO `LogFormatter`로 이동
+    private String formatTimestamp() {
         return LocalDateTime.now().format(DATE_TIME_FORMATTER);
     }
 
@@ -296,8 +307,8 @@ public final class TestLogger implements Logger {
     }
 
     @Override
-    public void warn(String msg) {
-        throw new RuntimeException("not implemented");
+    public void warn(final String msg) {
+        print(LogLevel.WARN, msg);
     }
 
     @Override
@@ -362,7 +373,7 @@ public final class TestLogger implements Logger {
 
     @Override
     public void error(String format, Object arg) {
-        throw new RuntimeException("not implemented");
+        print(LogLevel.ERROR, format, arg);
     }
 
     @Override
