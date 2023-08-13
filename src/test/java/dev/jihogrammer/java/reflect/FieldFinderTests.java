@@ -1,6 +1,7 @@
 package dev.jihogrammer.java.reflect;
 
 import dev.jihogrammer.java.util.logging.console.TestConsoleLogger;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
@@ -16,29 +17,34 @@ class FieldFinderTests {
     }
 
     static class ProxyFieldFinder {
-        private static final Logger log = new TestConsoleLogger(FieldFinder.class);
+        private static final Logger log = new TestConsoleLogger(ProxyFieldFinder.class);
 
         private final FieldFinder delegate;
 
         ProxyFieldFinder(Class<?> clazz) {
-            log.info("finding target is '{}'", clazz.getSimpleName());
+            log.info("finding target: '{}'", clazz.getSimpleName());
             delegate = new FieldFinder(clazz);
         }
 
         boolean hasField(Class<?> type) {
             boolean hasField = delegate.hasField(type);
-            log.info("has '{}' type field: {}", type.getSimpleName(), hasField);
+            log.info(">> found '{}' type field: {}", type.getSimpleName(), hasField);
             return hasField;
         }
 
         boolean hasField(String fieldName) {
             boolean hasField = delegate.hasField(fieldName);
-            log.info("has '{}' named field: {}", fieldName, hasField);
+            log.info(">> found '{}' named field: {}", fieldName, hasField);
             return hasField;
         }
     }
 
-    ProxyFieldFinder fieldFinder = new ProxyFieldFinder(TestClass.class);
+    static ProxyFieldFinder fieldFinder;
+
+    @BeforeAll
+    static void setUpClass() {
+        fieldFinder = new ProxyFieldFinder(TestClass.class);
+    }
 
     @Test
     void testFindByTypePublicField() {

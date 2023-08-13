@@ -1,6 +1,7 @@
 package dev.jihogrammer.java.reflect;
 
 import dev.jihogrammer.java.util.logging.console.TestConsoleLogger;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ClassFinderTests {
 
     static class ProxyClassFinder {
-        private static final Logger log = new TestConsoleLogger(ClassFinder.class);
+        private static final Logger log = new TestConsoleLogger(ProxyClassFinder.class);
 
         private final ClassFinder delegate = new ClassFinder();
 
@@ -31,7 +32,12 @@ class ClassFinderTests {
         }
     }
 
-    ProxyClassFinder classFinder = new ProxyClassFinder();
+    static ProxyClassFinder classFinder;
+
+    @BeforeAll
+    static void setUpClass() {
+        classFinder = new ProxyClassFinder();
+    }
 
     @Test
     void testFindClasses() {
