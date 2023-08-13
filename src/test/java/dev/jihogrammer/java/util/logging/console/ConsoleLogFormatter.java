@@ -3,15 +3,15 @@ package dev.jihogrammer.java.util.logging.console;
 import dev.jihogrammer.java.util.logging.LogFormatter;
 import dev.jihogrammer.java.reflect.ClassFinder;
 import dev.jihogrammer.java.reflect.FieldFinder;
+import dev.jihogrammer.java.util.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 import java.lang.reflect.Modifier;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class ConsoleLogFormatter implements LogFormatter {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final int MAX_THREAD_NAME_LENGTH = 19;
     private static final int MAX_LEVEL_NAME_LENGTH = 5;
     private static final int MAX_CLASS_NAME_LENGTH = new ClassFinder().findAllClasses().stream()
@@ -27,7 +27,7 @@ public class ConsoleLogFormatter implements LogFormatter {
     }
 
     private String timestamp() {
-        return LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        return Time.now().format(TIME_FORMATTER);
     }
 
     private String threadName() {
