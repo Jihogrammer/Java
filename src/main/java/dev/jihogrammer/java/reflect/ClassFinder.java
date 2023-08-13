@@ -1,11 +1,11 @@
-package dev.jihogrammer.java.util.reflection;
+package dev.jihogrammer.java.reflect;
 
 import java.io.File;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClassFinder {
+public final class ClassFinder {
     public List<Class<?>> findAllClasses() {
         return findClasses(".");
     }
