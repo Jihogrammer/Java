@@ -7,23 +7,25 @@ import dev.jihogrammer.java.util.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
-import java.lang.reflect.Modifier;
 import java.time.format.DateTimeFormatter;
 
 public class ConsoleLogFormatter implements LogFormatter {
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    private static final int MAX_THREAD_NAME_LENGTH = 19;
-    private static final int MAX_LEVEL_NAME_LENGTH = 5;
-    private static final int MAX_CLASS_NAME_LENGTH = new ClassFinder().findAllClasses().stream()
-            .filter(clazz -> new FieldFinder(clazz).hasField(Logger.class))
-            .filter(clazz -> !Modifier.isFinal(clazz.getModifiers()))
-            .mapToInt(clazz -> clazz.getSimpleName().length())
-            .max()
-            .orElse(20);
+    private static final DateTimeFormatter TIME_FORMATTER;
+    private static final String LOG_FORMAT;
+
+    static {
+        TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
+        int maxClassNameLength = new ClassFinder().findAllClasses().stream()
+                .filter(aClass -> new FieldFinder(aClass).hasField(Logger.class))
+                .mapToInt(aClass -> aClass.getSimpleName().length())
+                .max().orElseThrow();
+        LOG_FORMAT = "%s [%32s] [%5s] [%" + maxClassNameLength + "s] %s";
+    }
 
     @Override
     public String format(final String name, final Level level, final String message, final Object[] args) {
-        return "%s [%s] [%s] [%s] %s".formatted(timestamp(), threadName(), levelName(level), className(name), messageBody(message, args));
+        return LOG_FORMAT.formatted(timestamp(), threadName(), level, name, body(message, args));
     }
 
     private String timestamp() {
@@ -31,22 +33,10 @@ public class ConsoleLogFormatter implements LogFormatter {
     }
 
     private String threadName() {
-        return formatWithLength(Thread.currentThread().getName(), MAX_THREAD_NAME_LENGTH);
+        return Thread.currentThread().getName();
     }
 
-    private String levelName(final Level level) {
-        return formatWithLength(level.name(), MAX_LEVEL_NAME_LENGTH);
-    }
-
-    private String className(String name) {
-        return formatWithLength(name, MAX_CLASS_NAME_LENGTH);
-    }
-
-    private String formatWithLength(final String str, final int length) {
-        return String.format("%" + length + "s", str.substring(Math.max(0, str.length() - length)));
-    }
-
-    private String messageBody(final String message, final Object[] args) {
+    private String body(final String message, final Object[] args) {
         if (message.contains("{}")) {
             StringBuilder sb = new StringBuilder();
             String[] tokens = message.split("\\{}");
