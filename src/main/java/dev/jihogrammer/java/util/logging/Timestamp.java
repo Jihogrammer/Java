@@ -16,8 +16,12 @@ public final class Timestamp {
         return new Timestamp();
     }
 
+    public String format(DateTimeFormatter formatter) {
+        return formatter.format(timestamp);
+    }
+
     @Override
     public String toString() {
-        return DEFAULT_DATE_TIME_FORMATTER.format(timestamp);
+        return format(DEFAULT_DATE_TIME_FORMATTER);
     }
 }
