@@ -1,4 +1,4 @@
-package dev.jihogrammer.java.util.logging.console;
+package dev.jihogrammer.java.util.logging;
 
 import dev.jihogrammer.java.util.logging.Event;
 import dev.jihogrammer.java.util.logging.Formatter;
