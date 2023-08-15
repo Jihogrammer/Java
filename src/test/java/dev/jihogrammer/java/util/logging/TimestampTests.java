@@ -4,14 +4,16 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TimestampTests {
     @Test
-    void now() throws IllegalAccessException {
+    void testFormat() throws IllegalAccessException {
         // given
         Timestamp timestamp = Timestamp.now();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         // when
         for (Field field : Timestamp.class.getDeclaredFields()) {
             if (field.getType().isAssignableFrom(LocalDateTime.class) && field.getName().equals("timestamp")) {
@@ -20,6 +22,6 @@ class TimestampTests {
             }
         }
         // then
-        assertEquals("1994-06-14 00:00:00.000", timestamp.toString());
+        assertEquals("1994-06-14", timestamp.format(dateTimeFormatter));
     }
 }
