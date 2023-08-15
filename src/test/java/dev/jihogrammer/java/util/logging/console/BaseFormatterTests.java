@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ConsoleFormatterTests {
+class BaseFormatterTests {
     @Test
     void format() {
         // given
@@ -22,7 +22,7 @@ class ConsoleFormatterTests {
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         String logFormat = "%s [%s] [%s] %s - %s";
-        Formatter formatter = new ConsoleFormatter(logFormat, dateTimeFormatter);
+        Formatter formatter = new BaseFormatter(logFormat, dateTimeFormatter);
         // when
         String actual = formatter.format(event);
         // then

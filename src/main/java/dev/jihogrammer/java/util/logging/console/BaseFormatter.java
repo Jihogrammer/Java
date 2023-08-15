@@ -5,42 +5,42 @@ import dev.jihogrammer.java.util.logging.Formatter;
 
 import java.time.format.DateTimeFormatter;
 
-public final class ConsoleFormatter implements Formatter {
+public class BaseFormatter implements Formatter {
     private final String logFormat;
     private final DateTimeFormatter dateTimeFormatter;
 
-    public ConsoleFormatter(String logFormat, DateTimeFormatter dateTimeFormatter) {
+    public BaseFormatter(final String logFormat, final DateTimeFormatter dateTimeFormatter) {
         this.logFormat = logFormat;
         this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @Override
-    public String format(Event event) {
+    public String format(final Event event) {
         return logFormat.formatted(
                         event.getTimestamp().format(dateTimeFormatter),
                         event.getThread().getName(),
                         event.getLevel(),
                         event.getName(),
-                        body(event)
+                        body(event.getFormat(), event.getArgs())
                 );
     }
 
-    private String body(Event event) {
-        if (event.getFormat().contains("{}")) {
+    private String body(final String format, final Object[] args) {
+        if (format.contains("{}")) {
             StringBuilder sb = new StringBuilder();
-            String[] tokens = event.getFormat().split("\\{}");
+            String[] tokens = format.split("\\{}");
 
             int index = 0;
             while (index < tokens.length) {
                 sb.append(tokens[index]);
-                if (index < event.getArgs().length) {
-                    sb.append(event.getArgs()[index].toString());
+                if (index < args.length) {
+                    sb.append(args[index].toString());
                 }
                 index++;
             }
 
             return sb.toString();
         }
-        return event.getFormat();
+        return format;
     }
 }
