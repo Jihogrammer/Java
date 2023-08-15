@@ -1,9 +1,6 @@
-package dev.jihogrammer.java.util.logging.console;
+package dev.jihogrammer.java.util.logging;
 
-import dev.jihogrammer.java.util.logging.Event;
-import dev.jihogrammer.java.util.logging.Formatter;
-import dev.jihogrammer.java.util.logging.Level;
-import dev.jihogrammer.java.util.logging.Timestamp;
+import dev.jihogrammer.java.util.logging.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.format.DateTimeFormatter;
