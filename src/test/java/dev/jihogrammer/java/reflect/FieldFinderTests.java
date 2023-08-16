@@ -1,9 +1,8 @@
 package dev.jihogrammer.java.reflect;
 
-import dev.jihogrammer.java.util.logging.console.TestConsoleLogger;
+import dev.jihogrammer.java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,7 +16,7 @@ class FieldFinderTests {
     }
 
     static class ProxyFieldFinder {
-        private static final Logger log = new TestConsoleLogger(ProxyFieldFinder.class);
+        private static final Logger log = new Logger(ProxyFieldFinder.class);
 
         private final FieldFinder delegate;
 

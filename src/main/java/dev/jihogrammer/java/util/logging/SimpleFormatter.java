@@ -2,11 +2,11 @@ package dev.jihogrammer.java.util.logging;
 
 import java.time.format.DateTimeFormatter;
 
-public class BaseFormatter implements Formatter {
+public class SimpleFormatter implements Formatter {
     private final String logFormat;
     private final DateTimeFormatter dateTimeFormatter;
 
-    public BaseFormatter(final String logFormat, final DateTimeFormatter dateTimeFormatter) {
+    public SimpleFormatter(final String logFormat, final DateTimeFormatter dateTimeFormatter) {
         this.logFormat = logFormat;
         this.dateTimeFormatter = dateTimeFormatter;
     }
